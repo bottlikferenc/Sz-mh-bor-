@@ -8,10 +8,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_SDK_ROOT: /home/runner/android-sdk
-      ANDROID_HOME: /home/runner/android-sdk
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,31 +33,14 @@ jobs:
             libstdc++6 \
             wget
 
-      - name: Install Android SDK cmdline-tools + required packages
+      # ✅ EZ OLDJA MEG A sdkmanager hibát
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
         run: |
-          set -e
-
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          cd /tmp
-
-          # Android command line tools letöltése (Linux)
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
-
-          unzip -q cmdline.zip
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-          mv cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
-
-          # PATH beállítás
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
-
-          # Licencek elfogadása + szükséges csomagok telepítése
           yes | sdkmanager --licenses
-
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Install Buildozer & Cython
         run: |
