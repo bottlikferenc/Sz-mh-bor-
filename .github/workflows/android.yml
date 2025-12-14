@@ -2,8 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -23,52 +22,23 @@ jobs:
           sudo apt update
           sudo apt install -y \
             build-essential \
-            ccache \
             git \
             zip \
             unzip \
             openjdk-17-jdk \
-            libncurses6 \
-            libstdc++6 \
-            zlib1g \
             libffi-dev \
-            libssl-dev
+            libssl-dev \
+            zlib1g-dev \
+            libncurses6
 
       - name: Install Buildozer & Cython
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip
           pip install cython buildozer
-
-      # 🔹 1. Android SDK letöltés
-      - name: Download Android SDK cmdline-tools
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q commandlinetools-linux-11076708_latest.zip
-          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-
-      # 🔹 2. Környezeti változók (EZ A KULCS!)
-      - name: Set Android SDK environment
-        run: |
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
-
-      # 🔹 3. Licenc + build-tools (MOST MÁR LÁTJA A sdkmanager-t)
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager --version
-          yes | sdkmanager --licenses
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
 
       - name: Build APK
         run: |
-          buildozer -v android debug
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
