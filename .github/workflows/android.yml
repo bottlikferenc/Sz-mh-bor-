@@ -39,37 +39,34 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install cython buildozer
 
-      # --- ANDROID SDK + LICENSE FIX ---
-      - name: Install Android SDK cmdline-tools + accept licenses + install build-tools
+      # 🔹 1. Android SDK letöltés
+      - name: Download Android SDK cmdline-tools
         run: |
-          set -e
-          SDK="$HOME/android-sdk"
-          mkdir -p "$SDK/cmdline-tools"
-          cd "$HOME"
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-          # letöltjük a cmdline-tools-t
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d "$SDK/cmdline-tools"
-          mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+      # 🔹 2. Környezeti változók (EZ A KULCS!)
+      - name: Set Android SDK environment
+        run: |
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
-          echo "$SDK/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$SDK/platform-tools" >> $GITHUB_PATH
-
-          # licencek elfogadása
-          yes | sdkmanager --sdk_root="$SDK" --licenses
-
-          # kötelező csomagok (AIDL a build-tools része)
-          sdkmanager --sdk_root="$SDK" \
+      # 🔹 3. Licenc + build-tools (MOST MÁR LÁTJA A sdkmanager-t)
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager --version
+          yes | sdkmanager --licenses
+          sdkmanager \
             "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
       - name: Build APK
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           buildozer -v android debug
 
