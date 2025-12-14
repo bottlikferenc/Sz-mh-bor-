@@ -2,11 +2,15 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      ANDROID_SDK_ROOT: /home/runner/android-sdk
+      ANDROID_HOME: /home/runner/android-sdk
 
     steps:
       - name: Checkout repository
@@ -29,7 +33,35 @@ jobs:
             libffi-dev \
             libssl-dev \
             zlib1g-dev \
-            libncurses6
+            libncurses6 \
+            libstdc++6 \
+            wget
+
+      - name: Install Android SDK cmdline-tools + required packages
+        run: |
+          set -e
+
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          cd /tmp
+
+          # Android command line tools letöltése (Linux)
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline.zip
+
+          unzip -q cmdline.zip
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
+
+          # PATH beállítás
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+
+          # Licencek elfogadása + szükséges csomagok telepítése
+          yes | sdkmanager --licenses
+
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
 
       - name: Install Buildozer & Cython
         run: |
@@ -38,7 +70,7 @@ jobs:
 
       - name: Build APK
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
