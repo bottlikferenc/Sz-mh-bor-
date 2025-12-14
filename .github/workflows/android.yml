@@ -27,7 +27,8 @@ jobs:
           zip \
           unzip \
           openjdk-17-jdk \
-          libncurses5 \
+          libncurses6 \
+          libncurses-dev \
           libstdc++6 \
           zlib1g \
           libffi-dev \
