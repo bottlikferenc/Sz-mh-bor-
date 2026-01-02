@@ -18,22 +18,24 @@ jobs:
           python-version: "3.11"
 
       - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk \
-            libffi-dev \
-            libssl-dev \
-            zlib1g-dev \
-            libncurses6 \
-            libstdc++6 \
-            libbz2-dev \
-            libsqlite3-dev \
-            liblzma-dev
+       run: |
+    sudo apt update
+    sudo apt install -y \
+      build-essential \
+      git \
+      zip \
+      unzip \
+      ccache \
+      openjdk-17-jdk \
+      autoconf \
+      automake \
+      libtool \
+      pkg-config \
+      m4 \
+      gettext \
+      libffi-dev \
+      libssl-dev \
+      zlib1g-dev
 
       - name: Install Android SDK cmdline-tools
         run: |
